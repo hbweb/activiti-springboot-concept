@@ -1,14 +1,13 @@
 package com.example;
 
 
-import org.activiti.engine.RuntimeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.activiti.engine.IdentityService;
+import org.activiti.engine.identity.Group;
+import org.activiti.engine.identity.User;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class ActivitiDemoApplication {
@@ -17,27 +16,22 @@ public class ActivitiDemoApplication {
 		SpringApplication.run(ActivitiDemoApplication.class, args);
 	}
 	
-	@RestController
-	
-	public static class MyRestController{
-		@Autowired
-		private RuntimeService runtimeService;
-		
-//		@RequestMapping(value= "/start-process", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-//		
-//		
-//		public void startMyProcess(){
-//			runtimeService.startProcessInstanceByKey("CreateTask");
-//			System.out.println("My current process " + runtimeService.createProcessInstanceQuery().count());
-//		}
-		
-		/* Start Process by Submitting a New Task */
-		@RequestMapping(value= "/start", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-		
-		
-		public void startMyProcess(){
-			runtimeService.startProcessInstanceByKey("CreateTask");
-			System.out.println("My current process " + runtimeService.createProcessInstanceQuery().count());
-		}
-	}
+	@Bean
+    InitializingBean usersAndGroupsInitializer(final IdentityService identityService) {
+
+        return new InitializingBean() {
+            public void afterPropertiesSet() throws Exception {
+
+                Group group = identityService.newGroup("user");
+                group.setName("users");
+                group.setType("security-role");
+                identityService.saveGroup(group);
+
+                User admin = identityService.newUser("admin");
+                admin.setPassword("admin");
+                identityService.saveUser(admin);
+                
+            }
+        };
+    }
 }
